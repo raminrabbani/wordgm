@@ -34,32 +34,48 @@
     <div class="timer">Next word in: <span id="countdown">30</span> seconds</div>
 
     <script>
-        const words = ["apple", "banana", "cherry"];
         const wordElement = document.querySelector('.word');
         const countdownElement = document.getElementById('countdown');
-
+        let words = [];
         let currentWordIndex = 0;
         let countdown = 30;
 
+        // Function to fetch words from db.txt
+        async function fetchWords() {
+            try {
+                const response = await fetch('db.txt');
+                const text = await response.text();
+                words = text.split(/\r?\n/).filter(word => word.trim() !== ''); // Split lines and filter empty ones
+                wordElement.textContent = words[currentWordIndex];
+            } catch (error) {
+                wordElement.textContent = 'Error loading words!';
+                console.error('Failed to fetch words:', error);
+            }
+        }
+
         // Function to update the word
         function updateWord() {
-            currentWordIndex = (currentWordIndex + 1) % words.length;
-            wordElement.textContent = words[currentWordIndex];
-            countdown = 30; // Reset countdown
+            if (words.length > 0) {
+                currentWordIndex = (currentWordIndex + 1) % words.length;
+                wordElement.textContent = words[currentWordIndex];
+                countdown = 30; // Reset countdown
+            }
         }
 
         // Countdown timer
         setInterval(() => {
-            countdown--;
-            countdownElement.textContent = countdown;
+            if (words.length > 0) {
+                countdown--;
+                countdownElement.textContent = countdown;
 
-            if (countdown === 0) {
-                updateWord();
+                if (countdown === 0) {
+                    updateWord();
+                }
             }
         }, 1000);
 
-        // Initial load
-        wordElement.textContent = words[currentWordIndex];
+        // Fetch words on initial load
+        fetchWords();
     </script>
 </body>
 </html>
